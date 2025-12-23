@@ -1,13 +1,9 @@
 package com.zhny.iot.ota.sdk.handler;
 
-import com.zhny.iot.ota.sdk.core.YModemConstants;
-import com.zhny.iot.ota.sdk.core.YModemFramePacket;
-import com.zhny.iot.ota.sdk.core.message.YModemPacket;
+import com.zhny.iot.ota.sdk.core.message.YModemFramePacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * YModem协议编码器
@@ -15,10 +11,8 @@ import org.slf4j.LoggerFactory;
  */
 public class YModemEncoder extends MessageToByteEncoder<YModemFramePacket> {
 
-    private static final Logger logger = LoggerFactory.getLogger(YModemEncoder.class);
-
     @Override
-    protected void encode(ChannelHandlerContext ctx, YModemFramePacket packet, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, YModemFramePacket packet, ByteBuf out) {
         byte[] data = packet.build();
         if(data.length > 0){
             out.writeByte(packet.getFrameType());

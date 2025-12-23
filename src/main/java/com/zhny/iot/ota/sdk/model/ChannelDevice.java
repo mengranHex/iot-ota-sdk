@@ -1,6 +1,6 @@
 package com.zhny.iot.ota.sdk.model;
 
-import com.zhny.iot.ota.sdk.core.YModemFramePacket;
+import com.zhny.iot.ota.sdk.core.message.YModemFramePacket;
 import com.zhny.iot.ota.sdk.core.message.YModemPacketType;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -106,21 +106,22 @@ public abstract class ChannelDevice extends AbstractChannelDeviceBase {
     private void sendNotify() throws InterruptedException {
         long start = System.currentTimeMillis ();
         long timeout = 3000;
-        long waitTime = timeout;
         synchronized(sendLock) {
-            sendLock.wait(waitTime);
+            sendLock.wait(timeout);
         }
         long now = System.currentTimeMillis ();
         long timeSoFar = now - start;
         if (timeSoFar >= timeout){
             if(tryCount >= 2){
-                loadCurrentMessage();
+//                loadCurrentMessage();
                 tryCount = 0;
+                dispose();
             }else{
                 tryCount ++ ;
             }
             this.onSend();
         }else{
+            this.executeMsg.clear();
             loadCurrentMessage();
             this.onSend();
         }

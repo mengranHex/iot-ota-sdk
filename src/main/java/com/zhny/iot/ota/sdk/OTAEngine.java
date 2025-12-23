@@ -2,12 +2,11 @@ package com.zhny.iot.ota.sdk;
 
 import com.zhny.iot.ota.sdk.core.IEventNotifyHandler;
 import com.zhny.iot.ota.sdk.core.IFirmwareFileHandler;
-import com.zhny.iot.ota.sdk.core.YModemFramePacket;
+import com.zhny.iot.ota.sdk.core.message.YModemFramePacket;
 import com.zhny.iot.ota.sdk.core.message.*;
 import com.zhny.iot.ota.sdk.core.repository.*;
 import com.zhny.iot.ota.sdk.model.ChannelDevice;
 import com.zhny.iot.ota.sdk.model.ChannelOTADevice;
-import com.zhny.iot.ota.sdk.model.Device;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,44 +17,18 @@ import java.io.IOException;
 
 public class OTAEngine {
     private final IChannelRepository<ChannelDevice> repository;
-    //    private final IDeviceMapProvider<Device> deviceMapProvider;
     private static final Logger logger = LoggerFactory.getLogger(OTAEngine.class);
     private IFirmwareFileHandler handler;
 
     public OTAEngine() {
         repository = MemoryRepositoryFactory.build();
-//        deviceMapProvider = new MemoryDeviceMapProvider<>();
     }
 
     public void setEventHandler(IFirmwareFileHandler handler) {
         this.handler = handler;
     }
 
-    public void onRegisterDevice(Device device) {
-        if (device == null)
-            return;
-//        deviceMapProvider.put(device);
-    }
-
-    public void onOTARequest(Channel channel, OTAPacket packet) throws InterruptedException {
-//        Device device = deviceMapProvider.get(packet.getImei());
-//        if (device == null) {
-//            logger.info("device imei: {} business mapper not found,device forcibly close", packet.getImei());
-//            channel.writeAndFlush(new YModemPacket((byte) YModemPacketType.CAN.getI()));
-//            channel.close();
-//            repository.remove(channel.id());
-//            return;
-//        }
-//        if (device.isAllowUpgrade()) {
-//            //验证通过，保存连接
-//            File file = device.getUpgradeFile();
-//            if (file == null || file.length() == 0) {
-//                logger.info("device imei: {} upgrade file not found,device forcibly close", packet.getImei());
-//                channel.writeAndFlush(new YModemPacket((byte) YModemPacketType.CAN.getI()));
-//                channel.close();
-//                repository.remove(channel.id());
-//                return;
-//            }
+    public void onOTARequest(Channel channel, OTAPacket packet) {
         ChannelDevice otaDevice = repository.getCode(packet.getImei());
         if (otaDevice != null) {
             otaDevice.dispose();
@@ -89,17 +62,18 @@ public class OTAEngine {
 //        }
     }
 
-    public void onFileInfoStart(Channel channel, YModemFileInfoStartPacket packet) throws InterruptedException {
+    public void onFileInfoStart(Channel channel, YModemFileInfoStartPacket packet) {
 
         ChannelDevice otaDevice = repository.getKey(channel.id());
         if (otaDevice != null) {
             logger.info("device imei: {} ready receive [upgrade file info]", otaDevice.getKey());
             if (otaDevice instanceof ChannelOTADevice)
                 ((ChannelOTADevice) otaDevice).onFileInfo();
+            otaDevice.reviceMsgNotify();
         }
     }
 
-    public void onFileInfoAck(Channel channel, YModemFileInfoAckPacket packet) throws InterruptedException {
+    public void onFileInfoAck(Channel channel, YModemFileInfoAckPacket packet) {
         ChannelDevice otaDevice = repository.getKey(channel.id());
         if (otaDevice != null) {
 //            logger.info("device imei: {} upgrade file info answer {}", otaDevice.getKey(), packet.getType());
@@ -124,7 +98,7 @@ public class OTAEngine {
         }
     }
 
-    public void onFileDataStart(Channel channel, YModemFileDataStartPacket packet) throws InterruptedException, IOException {
+    public void onFileDataStart(Channel channel, YModemFileDataStartPacket packet) throws IOException {
         ChannelDevice otaDevice = repository.getKey(channel.id());
         if (otaDevice != null) {
             logger.info("device imei: {} ready receive [upgrade file data] {}", otaDevice.getKey(), packet.getType());
@@ -133,7 +107,7 @@ public class OTAEngine {
         }
     }
 
-    public void onFileDataAck(Channel channel, YModemFileDataEotFinalAckPacket packet) throws InterruptedException, IOException {
+    public void onFileDataAck(Channel channel, YModemFileDataEotFinalAckPacket packet) throws IOException {
         ChannelDevice otaDevice = repository.getKey(channel.id());
         if (otaDevice != null) {
             if (otaDevice instanceof ChannelOTADevice) {

@@ -1,7 +1,7 @@
 package com.zhny.iot.ota.sdk.model;
 
 import com.zhny.iot.ota.sdk.core.IEventNotifyHandler;
-import com.zhny.iot.ota.sdk.core.YModemFramePacket;
+import com.zhny.iot.ota.sdk.core.message.YModemFramePacket;
 import com.zhny.iot.ota.sdk.core.message.YModemPacketType;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -70,21 +70,12 @@ public class ChannelOTADevice extends ChannelDevice{
     }
     public void onFileEnd() {
         byte[] end = "0 0 0".getBytes();
-        YModemFramePacket packet = new YModemFramePacket((byte) YModemPacketType.SOH.getI(),end,0,false,true);
+        YModemFramePacket packet = new YModemFramePacket((byte) YModemPacketType.SOH.getI(),end,0,true,true);
         put(packet).exceptionally(throwable -> {
             logger.error("device IMEI [{}],send file end error{}",getKey(),throwable);
             return null;
         });
     }
-//    public void onUpgradeFile() throws InterruptedException, IOException {
-//        YModemFramePacket packet;
-//        if(!transferStarted){
-//            packet = buildFileInfo();
-//        }else {
-//            packet =buildFileData();
-//        }
-//        put( packet);
-//    }
     private YModemFramePacket buildFileInfo(){
         StringBuilder fileInfo = new StringBuilder();
         fileInfo.append(upgradeFile.getName()).append('\0');

@@ -50,7 +50,7 @@ public class YModemServer extends NettyServer{
                 pipeline.addLast(new YModemFileInfoAckHandler(engine));
                 pipeline.addLast(new YModemFileDataStartHandler(engine));
                 pipeline.addLast(new YModemFileDataEotFinalAckHandler(engine));
-                pipeline.addLast(new YModemFrameHandler(engine));
+//                pipeline.addLast(new YModemFrameHandler(engine));
             }
         };
     }

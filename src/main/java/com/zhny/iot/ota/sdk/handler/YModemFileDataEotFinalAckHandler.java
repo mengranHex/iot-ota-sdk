@@ -20,8 +20,6 @@ public class YModemFileDataEotFinalAckHandler extends SimpleChannelInboundHandle
     }
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        // 连接刚刚建立时，设备ID尚未确定
-        logger.info("New connection established from: {}", ctx.channel().remoteAddress());
         super.channelActive(ctx);
     }
     @Override

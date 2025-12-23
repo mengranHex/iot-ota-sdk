@@ -1,6 +1,4 @@
-package com.zhny.iot.ota.sdk.core;
-
-import com.zhny.iot.ota.sdk.core.message.YModemPacketType;
+package com.zhny.iot.ota.sdk.core.message;
 
 import java.util.Arrays;
 
@@ -8,13 +6,13 @@ import java.util.Arrays;
  * YModem协议帧表示类
  */
 public class YModemFramePacket {
-    private byte frameType;           // 帧类型 (SOH/STX/EOT等)
+    private final byte frameType;           // 帧类型 (SOH/STX/EOT等)
     private int sequenceNumber;       // 序列号
-    private byte[] data;             // 数据内容
+    private final byte[] data;             // 数据内容
     private boolean isFileInfo = false;
     private boolean hasCrc;          // 是否使用CRC校验
 
-    public YModemFramePacket(byte frameType, byte[] data, int sequenceNumber, boolean isFileInfo, boolean hasCrc) {
+    public  YModemFramePacket(byte frameType, byte[] data, int sequenceNumber, boolean isFileInfo, boolean hasCrc) {
         this.frameType = frameType;
         this.data = data;
         this.sequenceNumber = sequenceNumber;
@@ -63,17 +61,5 @@ public class YModemFramePacket {
 
     public int getSequenceNumber() {
         return sequenceNumber;
-    }
-
-    public boolean isHasCrc() {
-        return hasCrc;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public boolean isFileInfo() {
-        return isFileInfo;
     }
 }

@@ -1,7 +1,6 @@
 package com.zhny.iot.ota.sdk.model;
 
-import com.zhny.iot.ota.sdk.core.YModemFramePacket;
-import com.zhny.iot.ota.sdk.core.message.YModemPacketType;
+import com.zhny.iot.ota.sdk.core.message.YModemFramePacket;
 import io.netty.channel.Channel;
 import io.netty.util.internal.StringUtil;
 
