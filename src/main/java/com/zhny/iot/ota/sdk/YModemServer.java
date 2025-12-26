@@ -54,4 +54,11 @@ public class YModemServer extends NettyServer{
             }
         };
     }
+
+    @Override
+    public void stop(){
+        if(this.engine != null)
+            this.engine.onStop();
+        super.stop();
+    }
 }

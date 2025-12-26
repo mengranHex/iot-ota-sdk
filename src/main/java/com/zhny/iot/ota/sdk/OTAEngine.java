@@ -2,6 +2,7 @@ package com.zhny.iot.ota.sdk;
 
 import com.zhny.iot.ota.sdk.core.IEventNotifyHandler;
 import com.zhny.iot.ota.sdk.core.IFirmwareFileHandler;
+import com.zhny.iot.ota.sdk.core.QTARequestParam;
 import com.zhny.iot.ota.sdk.core.message.YModemFramePacket;
 import com.zhny.iot.ota.sdk.core.message.*;
 import com.zhny.iot.ota.sdk.core.repository.*;
@@ -34,13 +35,13 @@ public class OTAEngine {
             otaDevice.dispose();
             repository.remove(channel.id());
         }
-        if(!this.handler.onIsUpgradeFile(packet.getImei())) {
+        if(!this.handler.onIsUpgradeFile(new QTARequestParam(packet.getImei(), packet.getVersion()))) {
             logger.info("device imei: {} upgrade file not found,device forcibly close", packet.getImei());
             channel.writeAndFlush(new YModemFramePacket((byte) YModemPacketType.CAN.getI()));
             channel.close();
             return;
         }
-        File file = this.handler.onGetUpgradeFile(packet.getImei());
+        File file = this.handler.onGetUpgradeFile(new QTARequestParam(packet.getImei(), packet.getVersion()));
         if (file == null || file.length() == 0) {
             logger.info("device imei: {} upgrade file not found,device forcibly close", packet.getImei());
             channel.writeAndFlush(new YModemFramePacket((byte) YModemPacketType.CAN.getI()));
@@ -157,5 +158,9 @@ public class OTAEngine {
             otaDevice.dispose();
             repository.remove(channel.id());
         }
+    }
+
+    public void onStop(){
+        repository.getAll().forEach(ChannelDevice::dispose);
     }
 }
