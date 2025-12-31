@@ -23,7 +23,7 @@ public abstract class ChannelDevice extends AbstractChannelDeviceBase {
     private Integer tryCount = 0;
     public void onPass(){
         put(new YModemFramePacket((byte) YModemPacketType.PASS.getI()))
-                .thenRun(()->logger.info("device IMEI [{}],send PASS message",getKey()))
+                .thenRun(()->logger.info("device IMEI [{}],send PASS message success",getKey()))
                 .exceptionally(e->{
                     logger.error("device IMEI [{}],send PASS message error{}",getKey(),e);
                     return null;

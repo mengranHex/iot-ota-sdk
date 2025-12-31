@@ -1,5 +1,8 @@
 package com.zhny.iot.ota.sdk.core.message;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+
 import java.util.Arrays;
 
 /**
@@ -44,7 +47,8 @@ public class YModemFramePacket {
         StringBuilder builder = new StringBuilder();
         builder.append("FrameType: ").append(frameType).append("\n");
         builder.append("SequenceNumber: ").append(sequenceNumber).append("\n");
-        builder.append("Data Size: ").append(data==null?0:data.length).append("\n");
+        builder.append("Data Content: ").append(ByteBufUtil.hexDump(this.data)).append("\n");
+        builder.append("Data Size: ").append(data.length).append("\n");
         return builder.toString();
     }
 

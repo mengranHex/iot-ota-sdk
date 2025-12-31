@@ -81,7 +81,9 @@ public class ChannelOTADevice extends ChannelDevice{
         fileInfo.append(upgradeFile.getName()).append('\0');
         fileInfo.append(upgradeFile.length()).append('\0');
         byte[] fileInfoBytes = fileInfo.toString().getBytes();
-        return new YModemFramePacket((byte) YModemPacketType.SOH.getI(),fileInfoBytes,0,true,true);
+        YModemFramePacket packet = new YModemFramePacket((byte) YModemPacketType.SOH.getI(),fileInfoBytes,0,true,true);
+        currentPacket++;
+        return packet;
     }
 
     private YModemFramePacket buildFileData() throws IOException {
