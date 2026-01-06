@@ -1,9 +1,9 @@
 package com.zhny.iot.ota.sdk.core;
 
-public class QTARequestParam {
+public class OTARequestParam {
     private final String imei;
     private final String version;
-    public QTARequestParam(String imei, String version){
+    public OTARequestParam(String imei, String version){
         this.imei = imei;
         this.version = version;
     }

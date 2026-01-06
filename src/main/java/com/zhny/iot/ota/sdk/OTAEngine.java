@@ -2,7 +2,8 @@ package com.zhny.iot.ota.sdk;
 
 import com.zhny.iot.ota.sdk.core.IEventNotifyHandler;
 import com.zhny.iot.ota.sdk.core.IFirmwareFileHandler;
-import com.zhny.iot.ota.sdk.core.QTARequestParam;
+import com.zhny.iot.ota.sdk.core.OTARequestParam;
+import com.zhny.iot.ota.sdk.core.OTAUpgradeFileResponse;
 import com.zhny.iot.ota.sdk.core.message.YModemFramePacket;
 import com.zhny.iot.ota.sdk.core.message.*;
 import com.zhny.iot.ota.sdk.core.repository.*;
@@ -12,7 +13,6 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -35,21 +35,21 @@ public class OTAEngine {
             otaDevice.dispose();
             repository.remove(channel.id());
         }
-        if(!this.handler.onIsUpgradeFile(new QTARequestParam(packet.getImei(), packet.getVersion()))) {
+        if(!this.handler.onIsUpgradeFile(new OTARequestParam(packet.getImei(), packet.getVersion()))) {
             logger.info("device imei: {} upgrade file not found,device forcibly close", packet.getImei());
             channel.writeAndFlush(new YModemFramePacket((byte) YModemPacketType.CAN.getI()));
             channel.close();
             return;
         }
-        File file = this.handler.onGetUpgradeFile(new QTARequestParam(packet.getImei(), packet.getVersion()));
-        if (file == null || file.length() == 0) {
+        OTAUpgradeFileResponse response = this.handler.onGetUpgradeFile(new OTARequestParam(packet.getImei(), packet.getVersion()));
+        if (response == null ||response.getFile() == null || response.getFile().length() == 0) {
             logger.info("device imei: {} upgrade file not found,device forcibly close", packet.getImei());
             channel.writeAndFlush(new YModemFramePacket((byte) YModemPacketType.CAN.getI()));
             channel.close();
             return;
         }
         try {
-            otaDevice = new ChannelOTADevice(channel, packet.getImei(), file, (IEventNotifyHandler) this.handler);
+            otaDevice = new ChannelOTADevice(channel, packet.getImei(), response, (IEventNotifyHandler) this.handler);
         } catch (FileNotFoundException e) {
             logger.error("device imei: {} upgrade file error,device forcibly close", packet.getImei());
             channel.writeAndFlush(new YModemPacket((byte) YModemPacketType.CAN.getI()));

@@ -1,6 +1,7 @@
 package com.zhny.iot.ota.sdk.model;
 
 import com.zhny.iot.ota.sdk.core.IEventNotifyHandler;
+import com.zhny.iot.ota.sdk.core.OTAUpgradeFileResponse;
 import com.zhny.iot.ota.sdk.core.message.YModemFramePacket;
 import com.zhny.iot.ota.sdk.core.message.YModemPacketType;
 import io.netty.channel.Channel;
@@ -20,10 +21,12 @@ public class ChannelOTADevice extends ChannelDevice{
     private int currentPacket =0;
     private YModemFramePacket executePacket;
     private boolean isTransferEnded = false;
-    public ChannelOTADevice(Channel channel, String code, File upgradeFile, IEventNotifyHandler notifyHandler) throws FileNotFoundException {
+    private Long otaId;
+    public ChannelOTADevice(Channel channel, String code, OTAUpgradeFileResponse otaFileResponse, IEventNotifyHandler notifyHandler) throws FileNotFoundException {
         super(channel, code);
-        this.upgradeFile = upgradeFile;
+        this.upgradeFile = otaFileResponse.getFile();
         this.notifyHandler = notifyHandler;
+        otaId = otaFileResponse.getOtaId();
         inputStream = new FileInputStream(upgradeFile);
         totalPackets = (int) (upgradeFile.length() / 1024);
         molPackets = (int) (upgradeFile.length() % 1024);
@@ -31,6 +34,12 @@ public class ChannelOTADevice extends ChannelDevice{
     @Override
     public YModemFramePacket loadCommand() {
         return get();
+    }
+
+    @Override
+    public void onError(String msg) {
+        notifyHandler.onOTAError(getKey(),this.otaId, msg);
+        this.dispose();
     }
 
     public void onFileInfo() {
@@ -44,6 +53,7 @@ public class ChannelOTADevice extends ChannelDevice{
             logger.error("device IMEI [{}],send file info error{}",getKey(),throwable);
             return null;
         });
+        notifyHandler.onOTAStart(getKey(),otaId);
     }
 
     public void onFileData() throws IOException {
@@ -55,6 +65,8 @@ public class ChannelOTADevice extends ChannelDevice{
                     logger.error("device IMEI [{}],send file data error{}",getKey(),throwable);
                     return null;
                 });
+                if(!isTransferEnded)
+                    notifyHandler.onOTAProgress(getKey(),this.otaId,getProgress());
             }else {
                 this.dispose();
             }
@@ -75,6 +87,7 @@ public class ChannelOTADevice extends ChannelDevice{
             logger.error("device IMEI [{}],send file end error{}",getKey(),throwable);
             return null;
         });
+        notifyHandler.onOTAEnd(getKey(), this.otaId,true);
     }
     private YModemFramePacket buildFileInfo(){
         StringBuilder fileInfo = new StringBuilder();

@@ -115,7 +115,7 @@ public abstract class ChannelDevice extends AbstractChannelDeviceBase {
             if(tryCount >= 2){
 //                loadCurrentMessage();
                 tryCount = 0;
-                dispose();
+                onError(String.format("No response after exceeding the maximum number of retries %s", tryCount));
             }else{
                 tryCount ++ ;
             }
@@ -126,4 +126,6 @@ public abstract class ChannelDevice extends AbstractChannelDeviceBase {
             this.onSend();
         }
     }
+
+    public abstract void onError(String msg);
 }

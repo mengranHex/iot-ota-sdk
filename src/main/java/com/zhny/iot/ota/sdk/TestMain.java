@@ -2,6 +2,8 @@ package com.zhny.iot.ota.sdk;
 
 import com.zhny.iot.ota.sdk.core.IEventNotifyHandler;
 import com.zhny.iot.ota.sdk.core.IFirmwareFileHandler;
+import com.zhny.iot.ota.sdk.core.OTARequestParam;
+import com.zhny.iot.ota.sdk.core.OTAUpgradeFileResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,24 +27,24 @@ public class TestMain {
 
 class EventNotifyHandler implements IFirmwareFileHandler, IEventNotifyHandler {
     @Override
-    public boolean onIsUpgradeFile(String imei) {
+    public boolean onIsUpgradeFile(OTARequestParam param) {
         return true;
     }
 
     @Override
-    public File onGetUpgradeFile(String imei) {
+    public OTAUpgradeFileResponse onGetUpgradeFile(OTARequestParam param) {
         File tempFile = new File("temp.bin");
         try (FileOutputStream fos = new FileOutputStream(tempFile)) {
             fos.write(createSampleFirmwareData());
         }catch (IOException e){
 
         }
-        return tempFile;
+        return new OTAUpgradeFileResponse(1L, tempFile);
     }
 
     private byte[] createSampleFirmwareData() {
         // 创建示例固件数据，实际应用中这将来自文件系统
-        int size = 2048; // 100KB
+        int size = 1000*10; // 100KB
         byte[] data = new byte[size];
 
         // 填充示例数据
@@ -51,5 +53,24 @@ class EventNotifyHandler implements IFirmwareFileHandler, IEventNotifyHandler {
         }
 
         return data;
+    }
+    @Override
+    public void onOTAStart(String imeiCode, Long otaId) {
+
+    }
+
+    @Override
+    public void onOTAProgress(String imeiCode, Long otaId, int progress) {
+
+    }
+
+    @Override
+    public void onOTAEnd(String imeiCode, Long otaId, boolean isSuccess) {
+
+    }
+
+    @Override
+    public void onOTAError(String imeiCode, Long otaId, String errorMsg) {
+
     }
 }
