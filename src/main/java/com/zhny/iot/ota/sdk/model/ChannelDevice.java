@@ -39,13 +39,28 @@ public abstract class ChannelDevice extends AbstractChannelDeviceBase {
                 && this.getChannel ().id () == ((ChannelDevice)obj).getChannel ().id ());
     }
 
+    boolean isEmpty(){
+        synchronized (queueMessage){
+            return queueMessage.isEmpty();
+        }
+    }
+    boolean isFull(){
+        synchronized (queueMessage){
+            return queueMessage.size() >= 512;
+        }
+    }
     protected CompletableFuture<Void> put(YModemFramePacket message)  {
         CompletableFuture<Void> future = new CompletableFuture<>();
         if(message == null) {
             future.complete(null);
             return future;
         }
-        boolean isNull = queueMessage.isEmpty();
+
+        boolean isNull = isEmpty();
+        if(isFull()){
+            future.completeExceptionally(new Exception("queue is full"));
+            return future;
+        }
         queueMessage.offer(message);
         if(isNull){
             if(!isRun){
@@ -70,7 +85,7 @@ public abstract class ChannelDevice extends AbstractChannelDeviceBase {
     }
 
     public void loadCurrentMessage(){
-        if(!queueMessage.isEmpty()) {
+        if(!isEmpty()) {
             YModemFramePacket message=loadCommand();
             if(message != null)
                 this.executeMsg=message;
@@ -80,7 +95,7 @@ public abstract class ChannelDevice extends AbstractChannelDeviceBase {
         synchronized (isRun) {
             isRun= this.executeMsg != null;
         }
-        logger.info("channel[{}],queue isRun[{}],size[{}]",getKey(),isRun,queueMessage.size());
+//        logger.info("channel[{}],queue isRun[{}],size[{}]",getKey(),isRun,queueMessage.size());
     }
     public abstract YModemFramePacket loadCommand();
 
@@ -105,23 +120,25 @@ public abstract class ChannelDevice extends AbstractChannelDeviceBase {
 
     private void sendNotify() throws InterruptedException {
         long start = System.currentTimeMillis ();
-        long timeout = 3000;
+        long timeout = 6000;
         synchronized(sendLock) {
             sendLock.wait(timeout);
         }
         long now = System.currentTimeMillis ();
         long timeSoFar = now - start;
         if (timeSoFar >= timeout){
-            if(tryCount >= 2){
-//                loadCurrentMessage();
-                tryCount = 0;
-                onError(String.format("No response after exceeding the maximum number of retries %s", tryCount));
-            }else{
-                tryCount ++ ;
-            }
-            this.onSend();
-        }else{
             this.executeMsg.clear();
+            onError(String.format("No response after exceeding the maximum number of retries %s", tryCount));
+//            if(tryCount >= 0){
+//                loadCurrentMessage();
+//                this.executeMsg.clear();
+//                tryCount = 0;
+//                onError(String.format("No response after exceeding the maximum number of retries %s", tryCount));
+//            }else{
+//                tryCount ++ ;
+//            }
+//            this.onSend();
+        }else{
             loadCurrentMessage();
             this.onSend();
         }
